@@ -27,6 +27,69 @@ export const ellipseQuadrant = (
   } while ( x <= 0 )
 }
 
+export const midptellipse = (
+  radiusX: number, radiusY: number, action: PointAction,
+  showX = true, showY = true
+) => {
+  let x = 0
+  let y = radiusY
+
+  // Initial decision parameter of region 1
+  let d1 = ( radiusY * radiusY ) - ( radiusX * radiusX * radiusY ) +
+    ( 0.25 * radiusX * radiusX )
+  let dx = 2 * radiusY * radiusY * x
+  let dy = 2 * radiusX * radiusX * y
+
+  // For region 1
+  while ( dx < dy ) {
+
+    //console.log( { x, y } );
+    if( showX )
+      action( -x, y )
+
+    // Checking and updating value of
+    // decision parameter based on algorithm
+    if ( d1 < 0 ) {
+      x++
+      dx = dx + ( 2 * radiusY * radiusY )
+      d1 = d1 + dx + ( radiusY * radiusY )
+    }
+    else {
+      x++
+      y--
+      dx = dx + ( 2 * radiusY * radiusY )
+      dy = dy - ( 2 * radiusX * radiusX )
+      d1 = d1 + dx - dy + ( radiusY * radiusY )
+    }
+  }
+
+  // Decision parameter of region 2
+  let d2 = ( ( radiusY * radiusY ) * ( ( x + 0.5 ) * ( x + 0.5 ) ) )
+    + ( ( radiusX * radiusX ) * ( ( y - 1 ) * ( y - 1 ) ) )
+    - ( radiusX * radiusX * radiusY * radiusY )
+
+  // Plotting points of region 2
+  while ( y >= 0 ) {
+    if( showY )
+      action( -x, y )
+
+    // Checking and updating parameter
+    // value based on algorithm
+    if ( d2 > 0 ) {
+      y--
+      dy = dy - ( 2 * radiusX * radiusX )
+      d2 = d2 + ( radiusX * radiusX ) - dy
+    }
+    else {
+      y--
+      x++
+      dx = dx + ( 2 * radiusY * radiusY )
+      dy = dy - ( 2 * radiusX * radiusX )
+      d2 = d2 + dx - dy + ( radiusX * radiusX )
+    }
+  }
+}
+
 export const ellipse = (
   centerX: number, centerY: number,
   radiusX: number, radiusY: number,

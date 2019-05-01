@@ -19,6 +19,61 @@ exports.ellipseQuadrant = (radiusX, radiusY, action) => {
         }
     } while (x <= 0);
 };
+exports.midptellipse = (radiusX, radiusY, action, showX = true, showY = true) => {
+    let dx, dy, d1, d2, x, y;
+    x = 0;
+    y = radiusY;
+    // Initial decision parameter of region 1
+    d1 = (radiusY * radiusY) - (radiusX * radiusX * radiusY) +
+        (0.25 * radiusX * radiusX);
+    dx = 2 * radiusY * radiusY * x;
+    dy = 2 * radiusX * radiusX * y;
+    console.log('region 1');
+    // For region 1
+    while (dx < dy) {
+        //console.log( { x, y } );
+        if (showX)
+            action(-x, y);
+        //action( -y, x )
+        // Checking and updating value of
+        // decision parameter based on algorithm
+        if (d1 < 0) {
+            x++;
+            dx = dx + (2 * radiusY * radiusY);
+            d1 = d1 + dx + (radiusY * radiusY);
+        }
+        else {
+            x++;
+            y--;
+            dx = dx + (2 * radiusY * radiusY);
+            dy = dy - (2 * radiusX * radiusX);
+            d1 = d1 + dx - dy + (radiusY * radiusY);
+        }
+    }
+    // Decision parameter of region 2
+    d2 = ((radiusY * radiusY) * ((x + 0.5) * (x + 0.5)))
+        + ((radiusX * radiusX) * ((y - 1) * (y - 1)))
+        - (radiusX * radiusX * radiusY * radiusY);
+    // Plotting points of region 2
+    while (y >= 0) {
+        if (showY)
+            action(-x, y);
+        // Checking and updating parameter
+        // value based on algorithm
+        if (d2 > 0) {
+            y--;
+            dy = dy - (2 * radiusX * radiusX);
+            d2 = d2 + (radiusX * radiusX) - dy;
+        }
+        else {
+            y--;
+            x++;
+            dx = dx + (2 * radiusY * radiusY);
+            dy = dy - (2 * radiusX * radiusX);
+            d2 = d2 + dx - dy + (radiusX * radiusX);
+        }
+    }
+};
 exports.ellipse = (centerX, centerY, radiusX, radiusY, action) => {
     centerX = centerX | 0;
     centerY = centerY | 0;
