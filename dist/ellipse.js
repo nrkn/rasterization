@@ -19,24 +19,19 @@ exports.ellipseQuadrant = (radiusX, radiusY, action) => {
         }
     } while (x <= 0);
 };
-exports.midptellipse = (radiusX, radiusY, action, showX = true, showY = true) => {
-    let dx, dy, d1, d2, x, y;
-    x = 0;
-    y = radiusY;
-    // Initial decision parameter of region 1
-    d1 = (radiusY * radiusY) - (radiusX * radiusX * radiusY) +
+exports.ellipseOctants = (radiusX, radiusY, action, onSwitchOctant, showX = true, showY = true) => {
+    radiusX = radiusX | 0;
+    radiusY = radiusY | 0;
+    let x = 0;
+    let y = radiusY;
+    let d1 = (radiusY * radiusY) - (radiusX * radiusX * radiusY) +
         (0.25 * radiusX * radiusX);
-    dx = 2 * radiusY * radiusY * x;
-    dy = 2 * radiusX * radiusX * y;
-    console.log('region 1');
-    // For region 1
+    let dx = 2 * radiusY * radiusY * x;
+    let dy = 2 * radiusX * radiusX * y;
+    // Region 1, always increments x
     while (dx < dy) {
-        //console.log( { x, y } );
         if (showX)
             action(-x, y);
-        //action( -y, x )
-        // Checking and updating value of
-        // decision parameter based on algorithm
         if (d1 < 0) {
             x++;
             dx = dx + (2 * radiusY * radiusY);
@@ -50,16 +45,14 @@ exports.midptellipse = (radiusX, radiusY, action, showX = true, showY = true) =>
             d1 = d1 + dx - dy + (radiusY * radiusY);
         }
     }
-    // Decision parameter of region 2
-    d2 = ((radiusY * radiusY) * ((x + 0.5) * (x + 0.5)))
+    onSwitchOctant();
+    let d2 = ((radiusY * radiusY) * ((x + 0.5) * (x + 0.5)))
         + ((radiusX * radiusX) * ((y - 1) * (y - 1)))
         - (radiusX * radiusX * radiusY * radiusY);
-    // Plotting points of region 2
+    // Region 2, always decrements y
     while (y >= 0) {
         if (showY)
             action(-x, y);
-        // Checking and updating parameter
-        // value based on algorithm
         if (d2 > 0) {
             y--;
             dy = dy - (2 * radiusX * radiusX);
@@ -74,10 +67,81 @@ exports.midptellipse = (radiusX, radiusY, action, showX = true, showY = true) =>
         }
     }
 };
-exports.ellipse = (centerX, centerY, radiusX, radiusY, action) => {
+exports.pixelArtEllipseQuadrant = (radiusX, radiusY, action) => {
+    radiusX = radiusX | 0;
+    radiusY = radiusY | 0;
+    let runsX = [];
+    let runsY = [];
+    let lastY = -1;
+    let isX = true;
+    let prev = -1;
+    let current = 0;
+    let isJaggy = false;
+    const onSwitchOctant = () => {
+        runsX.push(current);
+        lastY = prev;
+        prev = -1;
+        isX = false;
+        current = 0;
+    };
+    const add = (x, y) => {
+        if (isX) {
+            if (y !== prev) {
+                if (prev !== -1) {
+                    runsX.push(current);
+                }
+                current = 1;
+            }
+            else {
+                current++;
+            }
+            prev = y;
+            return;
+        }
+        if (x !== prev) {
+            if (prev !== -1) {
+                runsY.push(current);
+            }
+            else if (y === lastY) {
+                isJaggy = true;
+            }
+            current = 1;
+        }
+        else {
+            current++;
+        }
+        prev = x;
+    };
+    exports.ellipseOctants(radiusX, radiusY, add, onSwitchOctant);
+    runsY.push(current);
+    if (isJaggy) {
+        runsY[0]--;
+    }
+    runsX.sort((a, b) => b - a);
+    runsY.sort((a, b) => a - b);
+    let x = 0;
+    let y = radiusY;
+    runsX.forEach(count => {
+        for (let c = 0; c < count; c++) {
+            action(x, y);
+            x--;
+        }
+        y--;
+    });
+    runsY.forEach(count => {
+        for (let c = 0; c < count; c++) {
+            action(x, y);
+            y--;
+        }
+        x--;
+    });
+};
+exports.Ellipse = (quadrant) => (centerX, centerY, radiusX, radiusY, action) => {
     centerX = centerX | 0;
     centerY = centerY | 0;
-    exports.ellipseQuadrant(radiusX, radiusY, (x, y) => {
+    radiusX = radiusX | 0;
+    radiusY = radiusY | 0;
+    quadrant(radiusX, radiusY, (x, y) => {
         // quadrant 1 = bottom right
         action(centerX - x, centerY + y);
         // quadrant 2 = bottom left
@@ -88,14 +152,17 @@ exports.ellipse = (centerX, centerY, radiusX, radiusY, action) => {
         action(centerX - x, centerY - y);
     });
 };
-exports.ellipseRect = (width, height, action) => {
+exports.ellipse = exports.Ellipse(exports.ellipseQuadrant);
+exports.pixelArtEllipse = exports.Ellipse(exports.pixelArtEllipseQuadrant);
+exports.EllipseRect = (quadrant) => (width, height, action) => {
     width = width | 0;
     height = height | 0;
     if (width === 0 || height === 0)
         return;
     if (width < 3 || height < 3) {
         for (let y = 0; y < height; y++) {
-            line_1.line(0, y, width - 1, y, action);
+            line_1.horizontalLine(0, y, width, action);
+            //line( 0, y, width - 1, y, action )
         }
         return;
     }
@@ -117,7 +184,7 @@ exports.ellipseRect = (width, height, action) => {
     else {
         radiusY = Math.floor(height / 2);
     }
-    exports.ellipseQuadrant(radiusX, radiusY, (x, y) => {
+    quadrant(radiusX, radiusY, (x, y) => {
         // quadrant 1 = bottom right
         action(radiusX - x + offsetX, radiusY + y + offsetY);
         // quadrant 2 = bottom left
@@ -128,4 +195,6 @@ exports.ellipseRect = (width, height, action) => {
         action(radiusX - x + offsetX, radiusY - y);
     });
 };
+exports.ellipseRect = exports.EllipseRect(exports.ellipseQuadrant);
+exports.pixelArtEllipseRect = exports.EllipseRect(exports.pixelArtEllipseQuadrant);
 //# sourceMappingURL=ellipse.js.map

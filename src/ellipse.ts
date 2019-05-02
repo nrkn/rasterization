@@ -1,5 +1,5 @@
-import { PointAction } from './types'
-import { line } from './line'
+import { PointAction, EllipseQuadrant } from './types'
+import { horizontalLine } from './line'
 
 export const ellipseQuadrant = (
   radiusX: number, radiusY: number, action: PointAction
@@ -27,28 +27,27 @@ export const ellipseQuadrant = (
   } while ( x <= 0 )
 }
 
-export const midptellipse = (
+export const ellipseOctants = (
   radiusX: number, radiusY: number, action: PointAction,
+  onSwitchOctant: () => void,
   showX = true, showY = true
 ) => {
+  radiusX = radiusX | 0
+  radiusY = radiusY | 0
+
   let x = 0
   let y = radiusY
 
-  // Initial decision parameter of region 1
   let d1 = ( radiusY * radiusY ) - ( radiusX * radiusX * radiusY ) +
     ( 0.25 * radiusX * radiusX )
   let dx = 2 * radiusY * radiusY * x
   let dy = 2 * radiusX * radiusX * y
 
-  // For region 1
+  // Region 1, always increments x
   while ( dx < dy ) {
-
-    //console.log( { x, y } );
     if( showX )
       action( -x, y )
 
-    // Checking and updating value of
-    // decision parameter based on algorithm
     if ( d1 < 0 ) {
       x++
       dx = dx + ( 2 * radiusY * radiusY )
@@ -63,18 +62,17 @@ export const midptellipse = (
     }
   }
 
-  // Decision parameter of region 2
+  onSwitchOctant()
+
   let d2 = ( ( radiusY * radiusY ) * ( ( x + 0.5 ) * ( x + 0.5 ) ) )
     + ( ( radiusX * radiusX ) * ( ( y - 1 ) * ( y - 1 ) ) )
     - ( radiusX * radiusX * radiusY * radiusY )
 
-  // Plotting points of region 2
+  // Region 2, always decrements y
   while ( y >= 0 ) {
     if( showY )
       action( -x, y )
 
-    // Checking and updating parameter
-    // value based on algorithm
     if ( d2 > 0 ) {
       y--
       dy = dy - ( 2 * radiusX * radiusX )
@@ -90,76 +88,176 @@ export const midptellipse = (
   }
 }
 
-export const ellipse = (
-  centerX: number, centerY: number,
+
+export const pixelArtEllipseQuadrant = (
   radiusX: number, radiusY: number,
   action: PointAction
 ) => {
-  centerX = centerX | 0
-  centerY = centerY | 0
+  radiusX = radiusX | 0
+  radiusY = radiusY | 0
 
-  ellipseQuadrant( radiusX, radiusY, ( x, y ) => {
-    // quadrant 1 = bottom right
-    action( centerX - x, centerY + y )
+  let runsX: number[] = []
+  let runsY: number[] = []
+  let lastY = -1
+  let isX = true
+  let prev = -1
+  let current = 0
+  let isJaggy = false
 
-    // quadrant 2 = bottom left
-    action( centerX + x, centerY + y )
+  const onSwitchOctant = () => {
+    runsX.push( current )
+    lastY = prev
+    prev = -1
+    isX = false
+    current = 0
+  }
 
-    // quadrant 3 = top left
-    action( centerX + x, centerY - y )
+  const add = ( x, y ) => {
+    if ( isX ) {
+      if ( y !== prev ) {
+        if ( prev !== -1 ) {
+          runsX.push( current )
+        }
+        current = 1
+      } else {
+        current++
+      }
 
-    // quadrant 4 = top right
-    action( centerX - x, centerY - y )
-  } )
-}
+      prev = y
 
-export const ellipseRect = (
-  width: number, height: number,
-  action: PointAction
-) => {
-  width = width | 0
-  height = height | 0
-
-  if ( width === 0 || height === 0 ) return
-
-  if ( width < 3 || height < 3 ) {
-    for ( let y = 0; y < height; y++ ) {
-      line( 0, y, width - 1, y, action )
+      return
     }
 
-    return
+    if ( x !== prev ) {
+      if ( prev !== -1 ) {
+        runsY.push( current )
+      } else if ( y === lastY ) {
+        isJaggy = true
+      }
+      current = 1
+    } else {
+      current++
+    }
+
+    prev = x
   }
 
-  let radiusX: number
-  let radiusY: number
-  let offsetX = 0
-  let offsetY = 0
+  ellipseOctants( radiusX, radiusY, add, onSwitchOctant )
 
-  if ( width % 2 === 0 ) {
-    radiusX = Math.floor( ( width - 1 ) / 2 )
-    offsetX = 1
-  } else {
-    radiusX = Math.floor( width / 2 )
+  runsY.push( current )
+
+  if ( isJaggy ) {
+    runsY[ 0 ]--
   }
 
-  if ( height % 2 === 0 ) {
-    radiusY = Math.floor( ( height - 1 ) / 2 )
-    offsetY = 1
-  } else {
-    radiusY = Math.floor( height / 2 )
-  }
+  runsX.sort( ( a, b ) => b - a )
+  runsY.sort( ( a, b ) => a - b )
 
-  ellipseQuadrant( radiusX, radiusY, ( x, y ) => {
-    // quadrant 1 = bottom right
-    action( radiusX - x + offsetX, radiusY + y + offsetY )
+  let x = 0
+  let y = radiusY
 
-    // quadrant 2 = bottom left
-    action( radiusX + x, radiusY + y + offsetY )
+  runsX.forEach( count => {
+    for ( let c = 0; c < count; c++ ) {
+      action( x, y )
+      x--
+    }
 
-    // quadrant 3 = top left
-    action( radiusX + x, radiusY - y )
+    y--
+  } )
 
-    // quadrant 4 = top right
-    action( radiusX - x + offsetX, radiusY - y )
+  runsY.forEach( count => {
+    for ( let c = 0; c < count; c++ ) {
+      action( x, y )
+      y--
+    }
+
+    x--
   } )
 }
+
+export const Ellipse = ( quadrant: EllipseQuadrant ) =>
+  (
+    centerX: number, centerY: number,
+    radiusX: number, radiusY: number,
+    action: PointAction
+  ) => {
+    centerX = centerX | 0
+    centerY = centerY | 0
+    radiusX = radiusX | 0
+    radiusY = radiusY | 0
+
+    quadrant( radiusX, radiusY, ( x, y ) => {
+      // quadrant 1 = bottom right
+      action( centerX - x, centerY + y )
+
+      // quadrant 2 = bottom left
+      action( centerX + x, centerY + y )
+
+      // quadrant 3 = top left
+      action( centerX + x, centerY - y )
+
+      // quadrant 4 = top right
+      action( centerX - x, centerY - y )
+    } )
+  }
+
+export const ellipse = Ellipse( ellipseQuadrant )
+
+export const pixelArtEllipse = Ellipse( pixelArtEllipseQuadrant )
+
+export const EllipseRect = ( quadrant: EllipseQuadrant ) =>
+  (
+    width: number, height: number,
+    action: PointAction
+  ) => {
+    width = width | 0
+    height = height | 0
+
+    if ( width === 0 || height === 0 ) return
+
+    if ( width < 3 || height < 3 ) {
+      for ( let y = 0; y < height; y++ ) {
+        horizontalLine( 0, y, width, action )
+        //line( 0, y, width - 1, y, action )
+      }
+
+      return
+    }
+
+    let radiusX: number
+    let radiusY: number
+    let offsetX = 0
+    let offsetY = 0
+
+    if ( width % 2 === 0 ) {
+      radiusX = Math.floor( ( width - 1 ) / 2 )
+      offsetX = 1
+    } else {
+      radiusX = Math.floor( width / 2 )
+    }
+
+    if ( height % 2 === 0 ) {
+      radiusY = Math.floor( ( height - 1 ) / 2 )
+      offsetY = 1
+    } else {
+      radiusY = Math.floor( height / 2 )
+    }
+
+    quadrant( radiusX, radiusY, ( x, y ) => {
+      // quadrant 1 = bottom right
+      action( radiusX - x + offsetX, radiusY + y + offsetY )
+
+      // quadrant 2 = bottom left
+      action( radiusX + x, radiusY + y + offsetY )
+
+      // quadrant 3 = top left
+      action( radiusX + x, radiusY - y )
+
+      // quadrant 4 = top right
+      action( radiusX - x + offsetX, radiusY - y )
+    } )
+  }
+
+export const ellipseRect = EllipseRect( ellipseQuadrant )
+
+export const pixelArtEllipseRect = EllipseRect( pixelArtEllipseQuadrant )

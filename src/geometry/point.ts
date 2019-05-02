@@ -98,3 +98,24 @@ export const translatePointsToZero = ( points: Point[] ) => {
 
   return points.map( p => translatePoint( p, point( -x, -y ) ) )
 }
+
+export const RotatePoint = ( factory: PointFactory ) =>
+  (
+    p: Point, radians: number,
+    origin = factory( 0, 0 )
+  ) => {
+    const x = (
+      Math.cos( radians ) * ( p.x - origin.x ) -
+      Math.sin( radians ) * ( p.y - origin.y ) +
+      origin.x
+    )
+    const y = (
+      Math.sin( radians ) * ( p.x - origin.x ) +
+      Math.cos( radians ) * ( p.y - origin.y ) +
+      origin.y
+    )
+
+    return factory( x, y )
+  }
+
+export const rotatePoint = RotatePoint( point )

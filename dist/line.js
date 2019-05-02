@@ -24,4 +24,28 @@ exports.line = (x0, y0, x1, y1, action) => {
         action(x0, y0);
     }
 };
+exports.verticalLine = (sx, sy, height, action) => {
+    sx = sx | 0;
+    sy = sy | 0;
+    height = height | 0;
+    if (height === 0)
+        return;
+    const direction = height < 0 ? -1 : 1;
+    height = Math.abs(height);
+    for (let y = 0; y < height; y++) {
+        action(sx, sy + y * direction);
+    }
+};
+exports.horizontalLine = (sx, sy, width, action) => {
+    sx = sx | 0;
+    sy = sy | 0;
+    width = width | 0;
+    if (width === 0)
+        return;
+    const direction = width < 0 ? -1 : 1;
+    width = Math.abs(width);
+    for (let x = 0; x < width; x++) {
+        action(sx + x * direction, sy);
+    }
+};
 //# sourceMappingURL=line.js.map

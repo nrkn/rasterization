@@ -1,5 +1,10 @@
-import { PointAction } from './types';
+import { PointAction, EllipseQuadrant } from './types';
 export declare const ellipseQuadrant: (radiusX: number, radiusY: number, action: PointAction) => void;
-export declare const midptellipse: (radiusX: number, radiusY: number, action: PointAction, showX?: boolean, showY?: boolean) => void;
+export declare const ellipseOctants: (radiusX: number, radiusY: number, action: PointAction, onSwitchOctant: () => void, showX?: boolean, showY?: boolean) => void;
+export declare const pixelArtEllipseQuadrant: (radiusX: number, radiusY: number, action: PointAction) => void;
+export declare const Ellipse: (quadrant: EllipseQuadrant) => (centerX: number, centerY: number, radiusX: number, radiusY: number, action: PointAction) => void;
 export declare const ellipse: (centerX: number, centerY: number, radiusX: number, radiusY: number, action: PointAction) => void;
+export declare const pixelArtEllipse: (centerX: number, centerY: number, radiusX: number, radiusY: number, action: PointAction) => void;
+export declare const EllipseRect: (quadrant: EllipseQuadrant) => (width: number, height: number, action: PointAction) => void;
 export declare const ellipseRect: (width: number, height: number, action: PointAction) => void;
+export declare const pixelArtEllipseRect: (width: number, height: number, action: PointAction) => void;

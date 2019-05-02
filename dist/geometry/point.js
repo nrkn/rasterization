@@ -63,4 +63,14 @@ exports.translatePointsToZero = (points) => {
     const { x, y } = exports.pointBoundingRect(points);
     return points.map(p => exports.translatePoint(p, exports.point(-x, -y)));
 };
+exports.RotatePoint = (factory) => (p, radians, origin = factory(0, 0)) => {
+    const x = (Math.cos(radians) * (p.x - origin.x) -
+        Math.sin(radians) * (p.y - origin.y) +
+        origin.x);
+    const y = (Math.sin(radians) * (p.x - origin.x) +
+        Math.cos(radians) * (p.y - origin.y) +
+        origin.y);
+    return factory(x, y);
+};
+exports.rotatePoint = exports.RotatePoint(exports.point);
 //# sourceMappingURL=point.js.map

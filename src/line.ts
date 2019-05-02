@@ -32,3 +32,41 @@ export const line =
       action( x0, y0 )
     }
   }
+
+export const verticalLine = (
+  sx: number, sy: number, height: number,
+  action: PointAction
+) => {
+  sx = sx | 0
+  sy = sy | 0
+  height = height | 0
+
+  if( height === 0 ) return
+
+  const direction = height < 0 ? -1 : 1
+
+  height = Math.abs( height )
+
+  for( let y = 0; y < height; y++ ){
+    action( sx, sy + y * direction )
+  }
+}
+
+export const horizontalLine = (
+  sx: number, sy: number, width: number,
+  action: PointAction
+) => {
+  sx = sx | 0
+  sy = sy | 0
+  width = width | 0
+
+  if ( width === 0 ) return
+
+  const direction = width < 0 ? -1 : 1
+
+  width = Math.abs( width )
+
+  for ( let x = 0; x < width; x++ ) {
+    action( sx + x * direction, sy )
+  }
+}

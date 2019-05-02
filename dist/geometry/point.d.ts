@@ -35,3 +35,5 @@ export declare const pointSet: () => {
 export declare const pointKey: ({ x, y }: Point) => string;
 export declare const pointBoundingRect: (points: Point[]) => import("./types").Rect;
 export declare const translatePointsToZero: (points: Point[]) => Point[];
+export declare const RotatePoint: (factory: PointFactory) => (p: Point, radians: number, origin?: Point) => Point;
+export declare const rotatePoint: (p: Point, radians: number, origin?: Point) => Point;
