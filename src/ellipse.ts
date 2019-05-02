@@ -29,7 +29,7 @@ export const ellipseQuadrant = (
 
 export const ellipseOctants = (
   radiusX: number, radiusY: number, action: PointAction,
-  onSwitchOctant: () => void,
+  onSwitchOctant = () => {},
   showX = true, showY = true
 ) => {
   radiusX = radiusX | 0

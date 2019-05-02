@@ -19,7 +19,7 @@ exports.ellipseQuadrant = (radiusX, radiusY, action) => {
         }
     } while (x <= 0);
 };
-exports.ellipseOctants = (radiusX, radiusY, action, onSwitchOctant, showX = true, showY = true) => {
+exports.ellipseOctants = (radiusX, radiusY, action, onSwitchOctant = () => { }, showX = true, showY = true) => {
     radiusX = radiusX | 0;
     radiusY = radiusY | 0;
     let x = 0;
